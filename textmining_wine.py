@@ -8,6 +8,13 @@ Created on Tue Oct  9 22:52:59 2018
 
 """
 
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Oct 12 11:05:03 2018
+
+@author: pseco
+"""
+
 import os
 import nltk
 import re
@@ -34,25 +41,25 @@ for d in doc:
     d = punc.sub('', d)
     term_vec.append(d)
 
-
+token_term_vec=[]
+for elm in term_vec:
+    token_term_vec.append(nltk.word_tokenize(elm))
 
 #remove stop words
 #nltk.download('stopwords')
 stop_words= set(nltk.corpus.stopwords.words('english'))
-  
+
+
 nsw_term_vec = []
-for words in term_vec:
-    if words not in stop_words:
-        nsw_term_vec.append(words)
+for reviews in token_term_vec:
+    for words in reviews:
+        if words not in stop_words:
+            nsw_term_vec.append(words)
 
 # Lemmatize and tokenize data
 #nltk.download('wordnet')
 wln = nltk.stem.WordNetLemmatizer()
+
 cln_term_vec = []
 for words in nsw_term_vec:
-    cln_term_vec.append(wln.lemmatize(words))
-
-term_vec_fnl=[]
-
-for elm in cln_term_vec:
-    term_vec_fnl.append(nltk.word_tokenize(elm))
+        cln_term_vec.append(wln.lemmatize(words))
