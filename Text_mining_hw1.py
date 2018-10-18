@@ -83,31 +83,35 @@ print(cln_term_vec[0:10])
     
 dict = gs.corpora.Dictionary(cln_term_vec)
 
-corp=[]
-for i in range(len(cln_term_vec)):
-    corp = corp + dict.doc2bow(cln_term_vec[i])
+corpora=[]
+for i in range(0, len(cln_term_vec)):
+    corpora.append(dict.doc2bow(cln_term_vec[i]))
 
 path = open('Wine_Txt_Corpus_Dict.csv', 'wb')
-pkl.dump(corp, path)
+pkl.dump(corpora, path)
 path.close()
 
 
 #Create TFIDF Vectors Based on term Vectors
 
-tfidf_model = gs.models.TfidfModel(corp)
+tfidf_model = gs.models.TfidfModel(corpora)
 
 tfidf=[]
-for i in range(0,len(corp)):
-    tfidf.append(tfidf_model[corp[i]])
+for i in range(0, len(corpora)):
+    tfidf.append(tfidf_model[corpora[i]])
     
 #Create Pairwise Document Siliarity Index
 n=len(dict)
-index = gs.similarities.SparseMatrixSimilarity(tfidf_model[corp], num_features = n)    
-    
+index = gs.similarities.SparseMatrixSimilarity(tfidf_model[corpora], num_features = n)    
+
+#Prints Words with their respective index
+
+print(dict.token2id)
+
 #Create Pairwise Similarity Per Review
 
 for i in range(0,len(tfidf)):
-    s='Review' + str(i+1)+' TFIDF'
+    s='Review' + ' ' + str(i+1)+' TFIDF'
     
     for j in range(0, len(tfidf[i])):
         s = s + ' (' + dict.get(tfidf[i][j][0]) + ',' 
@@ -115,14 +119,15 @@ for i in range(0,len(tfidf)):
                
     print(s)
     
-for i in range(0, len(corp)):
+for i in range(0, len(corpora)):
     print('Review', (i+1), 'sim: [ '),
     
-    sim = index[tfidf_model[corp[i]]]
+    sim = index[tfidf_model[corpora[i]]]
     for j in range(0, len(sim)):
         print('%.3f ' %sim[j]),
 
     print(']')
+
 
 
     
