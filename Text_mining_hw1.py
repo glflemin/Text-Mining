@@ -10,14 +10,18 @@ import nltk
 #nltk.download('stopwords')
 #nltk.download('wordnet')
 import re
+import scipy 
 import string
 import sklearn as sl 
 import pandas as pd
 import gensim as gs
 import pickle as pkl
+import PIL 
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+import matplotlib.pyplot as plt
 
-os.chdir(r"C:\\Users\\pseco\\Documents\\GitHub\\Text-Mining\\") 
-#os.chdir("C:\\Users\\gflemin\\Documents\\GitHub\\Text-Mining\\")
+#os.chdir(r"C:\\Users\\pseco\\Documents\\GitHub\\Text-Mining\\") 
+os.chdir("C:\\Users\\Grant\\Documents\\GitHub\\Text-Mining\\")
 
 df = pd.read_csv(r'Wine_Review_US.csv') # what's up with the r's?
 doc = []
@@ -37,7 +41,7 @@ for d in doc:
     d = punc.sub('', d)
     term_vec.append(d)
 
-#print(term_vec[0:10])
+print(term_vec[0:10])
 
 #tokenize
 token_term_vec=[]
@@ -79,6 +83,14 @@ for reviews in nsw_term_vec:
     
 print(cln_term_vec[0:10])
 
+# wordcloud trial
+text = str(cln_term_vec[0])
+wordcloud = WordCloud().generate(text)
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
+
+print(text)
 #Gen Sim Dictionary
     
 dict = gs.corpora.Dictionary(cln_term_vec)
