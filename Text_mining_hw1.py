@@ -20,8 +20,8 @@ import PIL
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 
-#os.chdir(r"C:\\Users\\pseco\\Documents\\GitHub\\Text-Mining\\") 
-os.chdir("C:\\Users\\Grant\\Documents\\GitHub\\Text-Mining\\")
+os.chdir(r"C:\\Users\\pseco\\Documents\\GitHub\\Text-Mining\\") 
+#os.chdir("C:\\Users\\Grant\\Documents\\GitHub\\Text-Mining\\")
 
 df = pd.read_csv(r'Wine_Review_US.csv') # what's up with the r's?
 doc = []
@@ -99,10 +99,6 @@ corpora=[]
 for i in range(0, len(cln_term_vec)):
     corpora.append(dict.doc2bow(cln_term_vec[i]))
 
-path = open('Wine_Txt_Corpus_Dict.csv', 'wb')
-pkl.dump(corpora, path)
-path.close()
-
 
 #Create TFIDF Vectors Based on term Vectors
 
@@ -120,7 +116,7 @@ index = gs.similarities.SparseMatrixSimilarity(tfidf_model[corpora], num_feature
 
 print(dict.token2id)
 
-#Create Pairwise Similarity Per Review
+#TFIDF Values per Document
 
 for i in range(0,len(tfidf)):
     s='Review' + ' ' + str(i+1)+' TFIDF'
@@ -131,15 +127,14 @@ for i in range(0,len(tfidf)):
                
     print(s)
     
+# Produces Document Simalarity
+#rev_sim = []
 for i in range(0, len(corpora)):
-    print('Review', (i+1), 'sim: [ '),
-    
     sim = index[tfidf_model[corpora[i]]]
     for j in range(0, len(sim)):
-        print('%.3f ' %sim[j]),
+        #rev_sim.append(sim[j])
+        sim[j]
 
-    print(']')
-
-
+print(index[tfidf_model[corpora[0]]][1])
 
     
