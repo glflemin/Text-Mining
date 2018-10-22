@@ -14,19 +14,21 @@ import string
 import sklearn as sl 
 import pandas as pd
 import gensim as gs
-import pickle as pkl
+
 
 
 os.chdir(r"C:\\Users\\pseco\\Documents\\GitHub\\Text-Mining\\") 
 #os.chdir("C:\\Users\\gflemin\\Documents\\GitHub\\Text-Mining\\")
 
-df = pd.read_csv(r'Wine_Review_US.csv') # what's up with the r's?
+df = pd.read_csv(r'US_Strat_sample.csv') # what's up with the r's?
 
+df['description'] = df['description'].str.replace('\d+', '')
 
 variety = list(df['variety'])
 doc = []
 descriptions = df['description']
 type(descriptions) # made a series
+
 
 df.head()
 for description in descriptions:
@@ -85,11 +87,11 @@ print(cln_term_vec[0:10])
 
 #Gen Sim Dictionary
     
-dict = gs.corpora.Dictionary(cln_term_vec)
+dict_corp = gs.corpora.Dictionary(cln_term_vec)
 
 corpus=[]
 for i in range(0, len(cln_term_vec)):
-    corpus.append(dict.doc2bow(cln_term_vec[i]))
+    corpus.append(dict_corp.doc2bow(cln_term_vec[i]))
 
 
 
@@ -102,12 +104,9 @@ for i in range(0,len(corpus)):
     tfidf.append(tfidf_model[corpus[i]])
     
 #Create Pairwise Document Siliarity Index
-n=len(dict)
+n=len(dict_corp)
 index = gs.similarities.SparseMatrixSimilarity(tfidf_model[corpus], num_features = n)    
 
-#Prints Words with their respective index
-
-print(dict.token2id)
 
 #TFIDF Values per Document
 
@@ -173,15 +172,9 @@ tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000, min_df=0.2, 
 tfidf_matrix = tfidf_vectorizer.fit_transform(doc)
 
 #Subset Matrix and compute distance
-part_one = tfidf_matrix[0:5000]
-part_two = tfidf_matrix[5001:10000]
-part_three  = tfidf_matrix[10001:15000]
-part_four = tfidf_matrix[0:5000]
-part_five = tfidf_matrix[5001:10000]
-part_six = tfidf_matrix[10001:15000]
+part_one = tfidf_matrix
 dist_matrix_one = 1-cosine_similarity(part_one)
-dist_matrix_two = 1-cosine_similarity(part_two)
-dist_matrix_three = 1-cosine_similarity(part_three)
+
 
 
 terms= tfidf_vectorizer.get_feature_names()
@@ -195,7 +188,6 @@ km.fit(tfidf_matrix)
 
 clusters=km.labels_.tolist()
 
-km=joblib.load('doc_cluster.pkl')
 clusters = km.labels_.tolist()
 
 #Visualize Cluster
@@ -205,7 +197,6 @@ cluster_frame=pd.DataFrame(reviews, index = [clusters], columns = ['Wine', 'clus
 
 print(cluster_frame[0:10])
 
-cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e'}
 
 #subset matrix
                  
@@ -232,10 +223,10 @@ xs, ys = pos[:, 0], pos[:, 1]
 print()
 print()
 
-df_2 = pd.DataFrame(dict(x=xs, y=ys, label=clusters[0:5000], title=variety[0:5000])) 
+df_2 = pd.DataFrame(dict(x=xs, y=ys, clusters=clusters, title=variety)) 
 
 #group by cluster
-groups = df_2.groupby('label')
+groups = df_2.groupby('clusters')
 
 # set up plot
 fig, ax = plt.subplots(figsize=(17, 9)) # set size
@@ -245,7 +236,7 @@ ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 #note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
 for name, group in groups:
     ax.plot(group.x, group.y, marker='o', linestyle='', ms=12, 
-            label=clusters, color=clusters
+            label=clusters, 
             mec='none')
     ax.set_aspect('auto')
     ax.tick_params(\
