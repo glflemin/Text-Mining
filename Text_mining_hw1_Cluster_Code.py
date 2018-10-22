@@ -23,7 +23,7 @@ os.chdir(r"C:\\Users\\pseco\\Documents\\GitHub\\Text-Mining\\")
 df = pd.read_csv(r'Wine_Review_US.csv') # what's up with the r's?
 
 
-wines=pd.DataFrame(df['variety'])
+variety = list(df['variety'])
 doc = []
 descriptions = df['description']
 type(descriptions) # made a series
@@ -162,15 +162,27 @@ for i in doc:
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 from sklearn.externals import joblib
+import numpy as np
 
 #computes similarity
-tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000, min_df=0.2, stop_words='english', use_idf=True, tokenizer=tokenize_and_stem, ngram_range=(1,3))
+tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000, min_df=0.2, stop_words=stopwords, use_idf=True, tokenizer=tokenize_and_stem, ngram_range=(1,3))
 
 tfidf_matrix = tfidf_vectorizer.fit_transform(doc)
 
-dist = 1 - cosine_similarity(tfidf_matrix)
+#Subset Matrix and compute distance
+part_one = tfidf_matrix[0:5000]
+part_two = tfidf_matrix[5001:10000]
+part_three  = tfidf_matrix[10001:15000]
+part_four = tfidf_matrix[0:5000]
+part_five = tfidf_matrix[5001:10000]
+part_six = tfidf_matrix[10001:15000]
+dist_matrix_one = 1-cosine_similarity(part_one)
+dist_matrix_two = 1-cosine_similarity(part_two)
+dist_matrix_three = 1-cosine_similarity(part_three)
+
 
 terms= tfidf_vectorizer.get_feature_names()
 
@@ -187,31 +199,43 @@ km=joblib.load('doc_cluster.pkl')
 clusters = km.labels_.tolist()
 
 #Visualize Cluster
-reviews = {'Wine':wines, 'Reviews':doc,'cluster':clusters}
+reviews = {'Wine':variety, 'Reviews':doc,'cluster':clusters}
 
-frame=pd.DataFrame(reviews, index = [clusters], columns = ['wine', 'cluster'])
+cluster_frame=pd.DataFrame(reviews, index = [clusters], columns = ['Wine', 'cluster'])
 
-print(frame[0:10])
-
-for i in range(1, len(frame)):
-    frame[index[i]] = reviews[va]
-    
+print(cluster_frame[0:10])
 
 cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e'}
+
+#subset matrix
+                 
+#create data frame that has the result of the MDS plus the cluster numbers and titles
+
+import os  # for os.path.basename
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sklearn.manifold import MDS
+from IPython import get_ipython
+get_ipython().run_line_magic('matplotlib', 'inline')
 
-#create data frame that has the result of the MDS plus the cluster numbers and titles
+MDS()
 
-%matplotlib inline 
+# convert two components as we're plotting points in a two-dimensional plane
+# "precomputed" because we provide a distance matrix
+# we will also specify `random_state` so the plot is reproducible.
+mds = MDS(n_components=2, dissimilarity="precomputed",  random_state=1)
 
-df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=titles)) 
+pos = mds.fit_transform(dist_matrix_one)  # shape (n_components, n_samples)
+
+xs, ys = pos[:, 0], pos[:, 1]
+print()
+print()
+
+df_2 = pd.DataFrame(dict(x=xs, y=ys, label=clusters[0:5000], title=variety[0:5000])) 
 
 #group by cluster
-groups = df.groupby('label')
-
+groups = df_2.groupby('label')
 
 # set up plot
 fig, ax = plt.subplots(figsize=(17, 9)) # set size
@@ -221,24 +245,24 @@ ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 #note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
 for name, group in groups:
     ax.plot(group.x, group.y, marker='o', linestyle='', ms=12, 
-            label=cluster_names[name], color=cluster_colors[name], 
+            label=clusters, color=clusters
             mec='none')
     ax.set_aspect('auto')
     ax.tick_params(\
         axis= 'x',          # changes apply to the x-axis
         which='both',      # both major and minor ticks are affected
-        bottom='off',      # ticks along the bottom edge are off
-        top='off',         # ticks along the top edge are off
-        labelbottom='off')
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelbottom=False)
     ax.tick_params(\
         axis= 'y',         # changes apply to the y-axis
         which='both',      # both major and minor ticks are affected
-        left='off',      # ticks along the bottom edge are off
-        top='off',         # ticks along the top edge are off
-        labelleft='off')
+        left=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelleft=False)
 
-for i in range(len(df)):
-    ax.text(df.ix[i]['x'], df.ix[i]['y'], df.ix[i]['title'], size=8)  
+for i in range(len(df_2)):
+    ax.text(df_2.loc[i]['x'], df_2.loc[i]['y'], df_2.loc[i]['title'], size=8)  
 
     
     
